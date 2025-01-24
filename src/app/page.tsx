@@ -1,53 +1,11 @@
 'use client'
 
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Head from 'next/head';
-import { Search, Heart, Sparkles } from 'lucide-react';
+import { Search, Sparkles } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
-
-// Ad Component with improved error handling
-const Advertisement = ({ slot, className }) => {
-  const adRef = useRef(null);
-
-  useEffect(() => {
-    const loadAds = async () => {
-      try {
-        if (!window.adsbygoogle) {
-          await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
-            script.async = true;
-            script.crossOrigin = 'anonymous';
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-          });
-        }
-
-        if (adRef.current?.offsetWidth > 0) {
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-        }
-      } catch (error) {
-        console.error('Ad loading error:', error);
-      }
-    };
-
-    loadAds();
-  }, []);
-
-  return (
-    <div ref={adRef} className={`ad-container ${className}`} style={{ minWidth: '300px', minHeight: '250px' }}>
-      <ins className="adsbygoogle"
-           style={{ display: 'block', width: '100%', height: '100%' }}
-           data-ad-client="YOUR-AD-CLIENT-ID"
-           data-ad-slot={slot}
-           data-ad-format="auto"
-           data-full-width-responsive="true" />
-    </div>
-  );
-};
 
 // Full habits data array
 const habits = [
@@ -354,9 +312,6 @@ const habits = [
 export default function JapaneseHabits() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const [favorites, setFavorites] = useState([]);
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-
   const [habitOfTheDay, setHabitOfTheDay] = useState(null);
 
   useEffect(() => {
@@ -371,42 +326,24 @@ export default function JapaneseHabits() {
     return uniqueCategories.sort();
   }, []);
 
-  const toggleFavorite = (id) => {
-    setFavorites(prev => 
-      prev.includes(id) ? prev.filter(fav => fav !== id) : [...prev, id]
-    );
-  };
-
   const filteredHabits = useMemo(() => {
     return habits.filter(habit => {
       const matchesCategory = selectedCategory === 'All' || habit.category === selectedCategory;
       const matchesSearch = habit.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            habit.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesFavorites = !showFavoritesOnly || favorites.includes(habit.id);
-      return matchesCategory && matchesSearch && matchesFavorites;
+      return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, searchTerm, showFavoritesOnly, favorites]);
+  }, [selectedCategory, searchTerm]);
 
   return (
     <>
       <Head>
         <title>Japanese Daily Habits & Wellness Practices | Mindful Living Guide</title>
         <meta name="description" content="Discover authentic Japanese daily habits and wellness practices for a balanced life. Learn mindfulness techniques, healthy living routines, and cultural practices for personal growth." />
-        <meta name="keywords" content="Japanese daily habits, Japanese wellness practices, Japanese lifestyle tips, Japanese self-improvement techniques, Japanese mindfulness practices, Japanese healthy living habits, Japanese cultural routines" />
-        
+        <meta name="keywords" content="Japanese daily habits, wellness practices, mindfulness, self-improvement" />
         <meta property="og:title" content="Japanese Daily Habits & Wellness Practices" />
         <meta property="og:description" content="Transform your life with authentic Japanese wellness rituals and mindfulness practices." />
         <meta property="og:type" content="website" />
-        
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            "name": "Japanese Daily Habits & Wellness Practices",
-            "description": "Discover authentic Japanese daily habits and wellness practices for a balanced life.",
-            "keywords": "Japanese daily habits, wellness practices, mindfulness, self-improvement"
-          })}
-        </script>
       </Head>
 
       <div className="min-h-screen bg-gray-50 p-6">
@@ -416,10 +353,6 @@ export default function JapaneseHabits() {
             <p className="mt-4 text-xl text-gray-600">Discover authentic Japanese wellness rituals and cultural practices for a balanced, mindful life</p>
           </header>
 
-          <div className="mb-8">
-            <Advertisement slot="top-banner-ad-slot" className="w-full h-24 bg-gray-100" />
-          </div>
-
           {habitOfTheDay && (
             <section aria-label="Featured Japanese practice of the day">
               <Card className="mb-8 bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
@@ -428,7 +361,7 @@ export default function JapaneseHabits() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="h-5 w-5 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">Todays Featured Japanese Practice</span>
+                        <span className="text-sm font-medium text-blue-900">Today's Featured Japanese Practice</span>
                       </div>
                       
                       <div className="space-y-2">
@@ -440,43 +373,29 @@ export default function JapaneseHabits() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => toggleFavorite(habitOfTheDay.id)}
-                        aria-label={favorites.includes(habitOfTheDay.id) ? "Remove from favorites" : "Add to favorites"}
-                      >
-                        <Heart 
-                          className={favorites.includes(habitOfTheDay.id) ? "text-red-500 fill-red-500" : ""} 
-                          size={20} 
-                        />
-                      </Button>
-                      
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" className="mt-20 bg-blue-200 text-blue-800 hover:bg-blue-300 hover:text-blue-900">
-                            Learn More About {habitOfTheDay.title}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle>{habitOfTheDay.title}</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <p className="text-gray-600">{habitOfTheDay.longDescription}</p>
-                            <div>
-                              <h4 className="font-semibold mb-2">Implementation Guide:</h4>
-                              <ul className="list-disc pl-4 space-y-2">
-                                {habitOfTheDay.implementation.map((step, index) => (
-                                  <li key={index} className="text-gray-600">{step}</li>
-                                ))}
-                              </ul>
-                            </div>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="bg-blue-200 text-blue-800 hover:bg-blue-300 hover:text-blue-900">
+                          Learn More
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>{habitOfTheDay.title}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <p className="text-gray-600">{habitOfTheDay.longDescription}</p>
+                          <div>
+                            <h4 className="font-semibold mb-2">Implementation Guide:</h4>
+                            <ul className="list-disc pl-4 space-y-2">
+                              {habitOfTheDay.implementation.map((step, index) => (
+                                <li key={index} className="text-gray-600">{step}</li>
+                              ))}
+                            </ul>
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </CardContent>
               </Card>
@@ -510,81 +429,54 @@ export default function JapaneseHabits() {
                   </option>
                 ))}
               </select>
-
-              <Button
-                variant={showFavoritesOnly ? "default" : "outline"}
-                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                aria-pressed={showFavoritesOnly}
-              >
-                {showFavoritesOnly ? 'Show All Practices' : 'Show Favorite Practices'}
-              </Button>
             </div>
           </section>
 
           <section aria-label="Japanese wellness practices collection">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredHabits.map((habit, index) => (
-                <React.Fragment key={habit.id}>
-                  <article className="h-full">
-                    <Card className="h-full">
-                      <CardHeader className="flex flex-row items-start justify-between space-y-0">
-                        <div className="space-y-1">
-                          <h3 className="text-xl font-semibold">{habit.title}</h3>
-                          <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
-                            Japanese {habit.category} Practice
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleFavorite(habit.id)}
-                          aria-label={favorites.includes(habit.id) ? "Remove from favorites" : "Add to favorites"}
-                        >
-                          <Heart 
-                            className={favorites.includes(habit.id) ? "text-red-500 fill-red-500" : ""} 
-                            size={20} 
-                          />
-                        </Button>
-                      </CardHeader>
-                      
-                      <CardContent>
-                        <p className="text-gray-600">{habit.description}</p>
-                      </CardContent>
+              {filteredHabits.map((habit) => (
+                <article key={habit.id} className="h-full">
+                  <Card className="h-full">
+                    <CardHeader>
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-semibold">{habit.title}</h3>
+                        <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                          Japanese {habit.category} Practice
+                        </span>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent>
+                      <p className="text-gray-600">{habit.description}</p>
+                    </CardContent>
 
-                      <CardFooter className="mt-auto">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" className="w-full">
-                              Learn More About {habit.title}
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                              <DialogTitle>{habit.title}</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <p className="text-gray-600">{habit.longDescription}</p>
-                              <div>
-                                <h4 className="font-semibold mb-2">Implementation Guide:</h4>
-                                <ul className="list-disc pl-4 space-y-2">
-                                  {habit.implementation.map((step, index) => (
-                                    <li key={index} className="text-gray-600">{step}</li>
-                                  ))}
-                                </ul>
-                              </div>
+                    <CardFooter className="mt-auto">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="w-full">
+                            Learn More
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>{habit.title}</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <p className="text-gray-600">{habit.longDescription}</p>
+                            <div>
+                              <h4 className="font-semibold mb-2">Implementation Guide:</h4>
+                              <ul className="list-disc pl-4 space-y-2">
+                                {habit.implementation.map((step, index) => (
+                                  <li key={index} className="text-gray-600">{step}</li>
+                                ))}
+                              </ul>
                             </div>
-                          </DialogContent>
-                        </Dialog>
-                      </CardFooter>
-                    </Card>
-                  </article>
-
-                  {(index + 1) % 6 === 0 && (
-                    <div className="col-span-full my-6">
-                      <Advertisement slot="in-feed-ad-slot" className="w-full h-32 bg-gray-100" />
-                    </div>
-                  )}
-                </React.Fragment>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </CardFooter>
+                  </Card>
+                </article>
               ))}
             </div>
 
