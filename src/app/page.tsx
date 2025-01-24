@@ -361,7 +361,7 @@ export default function JapaneseHabits() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="h-5 w-5 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">Today's Featured Japanese Practice</span>
+                        <span className="text-sm font-medium text-blue-900">Todays Featured Japanese Practice</span>
                       </div>
                       
                       <div className="space-y-2">
