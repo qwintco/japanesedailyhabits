@@ -312,11 +312,18 @@ const habits = [
 export default function JapaneseHabits() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
-  const [habitOfTheDay, setHabitOfTheDay] = useState(null);
+  const [habitOfTheDay, setHabitOfTheDay] = useState<{
+    id: number;
+    title: string;
+    description: string;
+    longDescription: string;
+    implementation: string[];
+    category: string;
+  } | null>(null);
 
   useEffect(() => {
     const today = new Date();
-    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
     const habitIndex = dayOfYear % habits.length;
     setHabitOfTheDay(habits[habitIndex]);
   }, []);
@@ -361,7 +368,7 @@ export default function JapaneseHabits() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <Sparkles className="h-5 w-5 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-900">Todays Featured Japanese Practice</span>
+                        <span className="text-sm font-medium text-blue-900">Today's Featured Japanese Practice</span>
                       </div>
                       
                       <div className="space-y-2">
